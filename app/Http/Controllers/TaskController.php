@@ -11,11 +11,24 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $tasks = Task::where('user_id', Auth::id())->get();
-        return view('tasks.index', compact('tasks'));
+    public function index(Request $request)
+{
+    // Inisialisasi query untuk mengambil tugas milik user yang sedang login
+    $query = Task::where('user_id', Auth::id());
+
+    // Cek apakah ada input pencarian
+    if ($request->has('search')) {
+        $search = $request->search;
+        // Filter tugas berdasarkan judul atau deskripsi yang mengandung kata kunci
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', '%' . $search . '%')
+              ->orWhere('description', 'like', '%' . $search . '%');
+        });
     }
+
+    $tasks = $query->get(); // Dapatkan hasil pencarian
+    return view('tasks.index', compact('tasks'));
+}
 
     /**
      * Show the form for creating a new resource.
