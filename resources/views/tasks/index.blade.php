@@ -15,7 +15,6 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <!-- Dropdown untuk User -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             {{ Auth::user()->name }}
@@ -47,6 +46,14 @@
         <!-- Tombol Tambah Tugas Baru -->
         <a href="{{ route('tasks.create') }}" class="btn btn-primary mb-3">Add New Task</a>
 
+        <!-- Form Pencarian -->
+        <form action="{{ route('tasks.index') }}" method="GET" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Cari tugas..." value="{{ request()->query('search') }}">
+                <button type="submit" class="btn btn-outline-secondary">Search</button>
+            </div>
+        </form>
+
         <!-- Tabel Daftar Tugas -->
         <table class="table table-bordered">
             <thead>
@@ -76,7 +83,6 @@
                             @endif
                         </td>
                         <td>
-                            <!-- Toggle Status -->
                             <form action="{{ route('tasks.toggleStatus', $task->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('PATCH')
@@ -85,10 +91,8 @@
                                 </button>
                             </form>
 
-                            <!-- Edit Task -->
                             <a href="{{ route('tasks.edit', $task->id) }}" class="btn btn-sm btn-primary">Edit</a>
 
-                            <!-- Delete Task -->
                             <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
