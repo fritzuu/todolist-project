@@ -12,24 +12,26 @@ class TaskController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-{
-    // Inisialisasi query untuk mengambil tugas milik user yang sedang login
-    $query = Task::where('user_id', Auth::id());
-
-    // Cek apakah ada input pencarian
-    if ($request->has('search')) {
-        $search = $request->search;
-        // Filter tugas berdasarkan judul atau deskripsi yang mengandung kata kunci
-        $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', '%' . $search . '%')
-              ->orWhere('description', 'like', '%' . $search . '%');
-        });
+    {
+        // Inisialisasi query untuk mengambil tugas milik user yang sedang login
+        $query = Task::where('user_id', Auth::id());
+    
+        // Cek apakah ada input pencarian
+        if ($request->has('search')) {
+            $search = $request->search;
+            // Filter tugas berdasarkan judul atau deskripsi yang mengandung kata kunci
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+    
+        // Gunakan paginate untuk menampilkan 10 tugas per halaman
+        $tasks = $query->paginate(5); // Atur jumlah per halaman sesuai kebutuhan
+    
+        return view('tasks.index', compact('tasks'));
     }
-
-    $tasks = $query->get(); // Dapatkan hasil pencarian
-    return view('tasks.index', compact('tasks'));
-}
-
+    
     /**
      * Show the form for creating a new resource.
      */

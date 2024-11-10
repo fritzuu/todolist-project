@@ -8,74 +8,115 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* Default Light Mode */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f8f9fa;
+            color: #212529;
         }
-
+    
         .navbar {
             background-color: #007bff;
         }
-
+    
         .navbar a {
-            color: white;
+            color: white
         }
-
+    
         .navbar .navbar-toggler {
             border-color: #007bff;
         }
-
+    
         .navbar-toggler-icon {
             background-color: white;
         }
-
+    
         .container {
             margin-top: 50px;
         }
-
+    
         .card {
             margin-bottom: 20px;
             border-radius: 10px;
             padding: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
+    
         .btn-primary {
             background-color: #007bff;
             border-color: #007bff;
         }
-
+    
         .btn-primary:hover {
             background-color: #0056b3;
             border-color: #0056b3;
         }
-
+    
         .table th, .table td {
             vertical-align: middle;
         }
-
+    
         .table-striped tbody tr:nth-of-type(odd) {
             background-color: #f2f2f2;
         }
-
+    
         #calendar {
             max-width: 100%;
             height: 300px;
             font-size: 0.9em;
             border-radius: 8px;
         }
-
+    
         /* Button hover effects */
         .btn:hover {
             cursor: pointer;
             opacity: 0.8;
         }
-
+    
         /* Better spacing in form inputs */
         .input-group {
             margin-bottom: 15px;
         }
+    
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #f8f9fa;
+        }
+    
+        .dark-mode .navbar {
+            background-color: #333;
+        }
+    
+        .dark-mode .navbar a {
+            color: #f8f9fa;
+        }
+    
+        .dark-mode .navbar-toggler-icon {
+            background-color: #333;
+        }
+    
+        .dark-mode .card {
+            background-color: #1e1e1e;
+            color: #f8f9fa;
+            box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+        }
+    
+        .dark-mode .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+    
+        .dark-mode .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+    
+        .dark-mode .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #2c2c2c;
+        }
     </style>
+    
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light">
@@ -128,57 +169,66 @@
             <div id="calendar" class="mb-5"></div>
         </div>
 
-        <!-- Task List Table -->
-        <div class="card">
-            <table class="table table-striped table-bordered">
-                <thead class="thead-dark">
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Due Date</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $counter = 1; @endphp
+                @foreach ($tasks as $task)
                     <tr>
-                        <th>#</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Due Date</th>
-                        <th>Priority</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <td>{{ $counter++ }}</td>
+                        <td>{{ $task->title }}</td>
+                        <td>{{ $task->description }}</td>
+                        <td>{{ $task->due_date ? $task->due_date->format('Y-m-d') : '-' }}</td>
+                        <td>{{ ucfirst($task->priority) }}</td>
+                        <td>
+                            @if ($task->status === 'completed')
+                                <span class="badge bg-success">Completed</span>
+                            @else
+                                <span class="badge bg-warning">Pending</span>
+                            @endif
+                        </td>
+                        <td>
+                            <form action="{{ route('tasks.toggleStatus', $task->id) }}" method="POST" class="toggle-status-form" style="display:inline;">
+                                @csrf
+                                @method('PATCH')
+                                <button type="button" class="btn btn-sm {{ $task->status === 'completed' ? 'btn-warning' : 'btn-success' }}" onclick="confirmToggleStatus(this)">
+                                    {{ $task->status === 'completed' ? 'Mark as Pending' : 'Mark as Complete' }}
+                                </button>
+                            </form>
+
+                            <a href="{{ route('tasks.edit', $task->id) }}" class="btn btn-sm btn-primary">Edit</a>
+
+                            <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="delete-form" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete(this)">Delete</button>
+                            </form>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @php $counter = 1; @endphp
-                    @foreach ($tasks as $task)
-                        <tr>
-                            <td>{{ $counter++ }}</td>
-                            <td>{{ $task->title }}</td>
-                            <td>{{ $task->description }}</td>
-                            <td>{{ $task->due_date ? $task->due_date->format('Y-m-d') : '-' }}</td>
-                            <td>{{ ucfirst($task->priority) }}</td>
-                            <td>
-                                @if ($task->status === 'completed')
-                                    <span class="badge bg-success">Completed</span>
-                                @else
-                                    <span class="badge bg-warning">Pending</span>
-                                @endif
-                            </td>
-                            <td>
-                                <form action="{{ route('tasks.toggleStatus', $task->id) }}" method="POST" class="toggle-status-form" style="display:inline;">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="button" class="btn btn-sm {{ $task->status === 'completed' ? 'btn-warning' : 'btn-success' }}" onclick="confirmToggleStatus(this)">
-                                        {{ $task->status === 'completed' ? 'Mark as Pending' : 'Mark as Complete' }}
-                                    </button>
-                                </form>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 
-                                <a href="{{ route('tasks.edit', $task->id) }}" class="btn btn-sm btn-primary">Edit</a>
+    <!-- Pagination Links -->
+    <div class="d-flex justify-content-center mt-4">
+        {{ $tasks->links('pagination::bootstrap-4') }}
+    </div>
+</div>
 
-                                <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="delete-form" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete(this)">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+
         </div>
     </div>
 
@@ -186,6 +236,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.js"></script>
     <script>
+        
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
